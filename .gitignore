@@ -5,6 +5,10 @@ node_modules
 out
 dist
 *.tgz
+weather
+
+# weather cli data
+weather.json
 
 # code coverage
 coverage
