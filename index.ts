@@ -1,3 +1,4 @@
+import { red } from "./src/colors.ts";
 import {
   addCity,
   ask,
@@ -42,7 +43,7 @@ async function main(): Promise<void> {
         console.log("  Até logo!");
         return;
       default:
-        console.log("  Opção inválida.");
+        console.log(red("  Opção inválida."));
     }
   }
 }

@@ -1,4 +1,5 @@
 import { geocode, getTemperature } from "./api.ts";
+import { bold, cyan, green, red, yellow } from "./colors.ts";
 import { saveConfig } from "./storage.ts";
 import type { City, Config, Unit } from "./types.ts";
 
@@ -25,17 +26,17 @@ function errorMessage(error: unknown): string {
 
 export function printMenu(config: Config): void {
   console.log("");
-  console.log(LINE);
-  console.log("         WEATHER CLI");
-  console.log(LINE);
-  console.log("  1. Clima da cidade padrão");
-  console.log(`  2. Clima de todas as cidades (${config.cities.length})`);
-  console.log("  3. Buscar e adicionar cidade");
-  console.log("  4. Remover cidade");
-  console.log("  5. Definir cidade padrão");
-  console.log(`  8. Configurações (${unitSymbol(config.unit)})`);
-  console.log("  9. Sair");
-  console.log(LINE);
+  console.log(cyan(LINE));
+  console.log(`         ${cyan(bold("WEATHER CLI"))}`);
+  console.log(cyan(LINE));
+  console.log(`  ${cyan("1.")} Clima da cidade padrão`);
+  console.log(`  ${cyan("2.")} Clima de todas as cidades (${config.cities.length})`);
+  console.log(`  ${cyan("3.")} Buscar e adicionar cidade`);
+  console.log(`  ${cyan("4.")} Remover cidade`);
+  console.log(`  ${cyan("5.")} Definir cidade padrão`);
+  console.log(`  ${cyan("8.")} Configurações (${unitSymbol(config.unit)})`);
+  console.log(`  ${cyan("9.")} Sair`);
+  console.log(cyan(LINE));
 }
 
 function printCityList(config: Config): void {
@@ -48,9 +49,9 @@ function printCityList(config: Config): void {
 async function printWeather(city: City, unit: Unit): Promise<void> {
   try {
     const temperature = await getTemperature(city, unit);
-    console.log(`  ${formatCity(city)} — ${temperature} ${unitSymbol(unit)}`);
+    console.log(`  ${formatCity(city)} — ${yellow(bold(`${temperature} ${unitSymbol(unit)}`))}`);
   } catch (error) {
-    console.log(`  ${formatCity(city)} — indisponível (${errorMessage(error)})`);
+    console.log(`  ${formatCity(city)} — ${red(`indisponível (${errorMessage(error)})`)}`);
   }
 }
 
@@ -79,7 +80,7 @@ export async function addCity(config: Config): Promise<void> {
   try {
     const city = await geocode(name);
     if (!city) {
-      console.log(`  Cidade não encontrada: "${name}"`);
+      console.log(red(`  Cidade não encontrada: "${name}"`));
       return;
     }
     if (config.cities.some((existing) => existing.id === city.id)) {
@@ -88,9 +89,9 @@ export async function addCity(config: Config): Promise<void> {
     }
     config.cities.push(city);
     await saveConfig(config);
-    console.log(`  Adicionada: ${formatCity(city)}`);
+    console.log(green(`  Adicionada: ${formatCity(city)}`));
   } catch (error) {
-    console.log(`  ${errorMessage(error)}`);
+    console.log(red(`  ${errorMessage(error)}`));
   }
 }
 
@@ -104,19 +105,19 @@ export async function removeCity(config: Config): Promise<void> {
   const answer = ask("  Número da cidade a remover (0 para cancelar): ");
   const number = answer === null ? Number.NaN : Number(answer);
   if (!Number.isInteger(number) || number < 0 || number > config.cities.length) {
-    console.log("  Número inválido.");
+    console.log(red("  Número inválido."));
     return;
   }
   if (number === 0) return;
   const city = config.cities[number - 1];
   if (!city) {
-    console.log("  Número inválido.");
+    console.log(red("  Número inválido."));
     return;
   }
   config.cities = config.cities.filter((existing) => existing.id !== city.id);
   if (config.defaultCity?.id === city.id) config.defaultCity = undefined;
   await saveConfig(config);
-  console.log(`  Removida: ${formatCity(city)}`);
+  console.log(green(`  Removida: ${formatCity(city)}`));
 }
 
 async function setDefaultBySearch(config: Config): Promise<void> {
@@ -125,18 +126,18 @@ async function setDefaultBySearch(config: Config): Promise<void> {
   try {
     const city = await geocode(name);
     if (!city) {
-      console.log(`  Cidade não encontrada: "${name}"`);
+      console.log(red(`  Cidade não encontrada: "${name}"`));
       return;
     }
     if (!config.cities.some((existing) => existing.id === city.id)) {
       config.cities.push(city);
-      console.log(`  Adicionada: ${formatCity(city)}`);
+      console.log(green(`  Adicionada: ${formatCity(city)}`));
     }
     config.defaultCity = city;
     await saveConfig(config);
-    console.log(`  Cidade padrão definida: ${formatCity(city)}`);
+    console.log(green(`  Cidade padrão definida: ${formatCity(city)}`));
   } catch (error) {
-    console.log(`  ${errorMessage(error)}`);
+    console.log(red(`  ${errorMessage(error)}`));
   }
 }
 
@@ -156,12 +157,12 @@ export async function setDefaultCity(config: Config): Promise<void> {
   const number = answer === null ? Number.NaN : Number(answer);
   const city = Number.isInteger(number) ? config.cities[number - 1] : undefined;
   if (!city || number < 1) {
-    console.log("  Escolha inválida.");
+    console.log(red("  Escolha inválida."));
     return;
   }
   config.defaultCity = city;
   await saveConfig(config);
-  console.log(`  Cidade padrão definida: ${formatCity(city)}`);
+  console.log(green(`  Cidade padrão definida: ${formatCity(city)}`));
 }
 
 export async function openSettings(config: Config): Promise<void> {
@@ -172,10 +173,10 @@ export async function openSettings(config: Config): Promise<void> {
   const answer = ask("  Selecione: ");
   if (answer === null || answer === "0") return;
   if (answer !== "1") {
-    console.log("  Opção inválida.");
+    console.log(red("  Opção inválida."));
     return;
   }
   config.unit = config.unit === "celsius" ? "fahrenheit" : "celsius";
   await saveConfig(config);
-  console.log(`  Unidade salva: ${unitSymbol(config.unit)}`);
+  console.log(green(`  Unidade salva: ${unitSymbol(config.unit)}`));
 }
