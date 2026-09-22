@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Instalar Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Ler versão do package.json
+        id: version
+        run: echo "version=$(jq -er .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar se a tag já existe
+        id: tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [ -n "$(git ls-remote --tags origin "refs/tags/v${VERSION}")" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag já existe (nada a fazer)
+        if: steps.tag.outputs.exists == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: echo "A tag v${VERSION} já existe. Faça bump da versão no package.json para gerar uma nova release."
+
+      - name: Build (testes + binário linux-x64)
+        if: steps.tag.outputs.exists == 'false'
+        run: bun run build
+
+      - name: Cross-compile para as demais plataformas
+        if: steps.tag.outputs.exists == 'false'
+        run: |
+          mv weather weather-linux-x64
+          bun build --compile --target=bun-linux-arm64 src/index.ts --outfile weather-linux-arm64
+          bun build --compile --target=bun-darwin-x64 src/index.ts --outfile weather-darwin-x64
+          bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile weather-darwin-arm64
+          bun build --compile --target=bun-windows-x64 src/index.ts --outfile weather-windows-x64.exe
+
+      - name: Criar e enviar tag
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+
+      - name: Criar release com os binários
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" \
+            weather-linux-x64 \
+            weather-linux-arm64 \
+            weather-darwin-x64 \
+            weather-darwin-arm64 \
+            weather-windows-x64.exe \
+            --title "v${VERSION}" \
+            --generate-notes
