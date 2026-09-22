@@ -42,6 +42,7 @@ Esta é a aparência que desejamos criar:
   4. Remover cidade
   5. Definir cidade padrão
   6. Previsão para 7 dias
+  7. Listar cidades
   8. Configurações (°C)
   9. Sair
 ════════════════════════════════════════

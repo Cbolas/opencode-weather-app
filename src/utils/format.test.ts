@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { describeWeatherCode, formatForecastDate } from "./menu.ts";
+import { describeWeatherCode, formatForecastDate } from "./format.ts";
 
 describe("describeWeatherCode", () => {
   test("descreve códigos WMO conhecidos", () => {

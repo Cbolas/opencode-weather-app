@@ -4,20 +4,21 @@
 
 Interactive weather CLI (Bun + TypeScript). Console menu app that looks up city weather via OpenMeteo; end goal is a compiled standalone binary.
 
-- Greenfield: `index.ts` is still the `bun init` placeholder. No tests, lint, or CI configured yet — don't assume a `npm run`/Node toolchain.
+- Source lives in `src/` with a layered structure (actions, presentation, storage, types, api, utils) matching `references/file-system.md` — keep new files in the right layer.
 - README and UI are in Portuguese — keep new user-facing text in Portuguese.
-- Planned features (per README): default city, add/remove multiple cities, unit settings (°C).
-- README's sample menu numbers options 1–5 then jumps to 8 (settings) and 9 (exit); preserve that numbering rather than "fixing" it.
+- Runtime state is stored in `cities.json` and `settings.json` (project root, gitignored); a legacy `weather.json` is migrated automatically on first run.
+- Menu numbers options 1–7, then 8 (settings) and 9 (exit); keep 8/9 in place when adding new options.
+- No lint or CI configured; tests use Bun's built-in runner — don't assume an `npm run`/Node toolchain.
 
 ## Commands
 
 Runtime/package manager is Bun:
 
-- Run: `bun index.ts`
-- Typecheck only: `bunx tsc` (tsconfig has `noEmit: true`)
+- Run: `bun src/index.ts`
+- Typecheck only: `bun x tsc` (tsconfig has `noEmit: true`; use `bun x` — `bunx` may not be on PATH)
 - Test: `bun test` (Bun built-in runner)
 - Install deps: `bun install`
-- Build deliverable binary: `bun build --compile index.ts --outfile weather`
+- Build deliverable binary: `bun build --compile src/index.ts --outfile weather`
 
 ## OpenMeteo (no API key required)
 

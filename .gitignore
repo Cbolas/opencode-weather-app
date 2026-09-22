@@ -9,6 +9,9 @@ weather
 
 # weather cli data
 weather.json
+weather.json.bak
+cities.json
+settings.json
 
 # code coverage
 coverage
