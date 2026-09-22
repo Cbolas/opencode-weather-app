@@ -8,6 +8,7 @@ import {
   setDefaultCity,
   showAllWeather,
   showDefaultWeather,
+  showWeeklyForecast,
 } from "./src/menu.ts";
 import { loadConfig } from "./src/storage.ts";
 
@@ -35,6 +36,9 @@ async function main(): Promise<void> {
         break;
       case "5":
         await setDefaultCity(config);
+        break;
+      case "6":
+        await showWeeklyForecast(config);
         break;
       case "8":
         await openSettings(config);
